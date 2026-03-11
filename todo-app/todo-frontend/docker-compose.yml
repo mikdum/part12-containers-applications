@@ -1,0 +1,13 @@
+services:
+  app:
+    image: hello-front
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+    - ./:/usr/src/app
+    ports:
+    - 3210:5173
+    environment:
+    - VITE_BACKEND_URL=/api
+ 

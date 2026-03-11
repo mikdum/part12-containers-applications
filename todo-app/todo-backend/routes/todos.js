@@ -1,5 +1,6 @@
 const express = require('express');
 const { Todo } = require('../mongo')
+const redis = require('../redis')
 const router = express.Router();
 
 /* GET todos listing. */
@@ -7,7 +8,10 @@ router.get('/', async (_, res) => {
   const todos = await Todo.find({})
   res.send(todos);
 });
-
+router.get('/:id', async (req, res) => {
+  const todos = await Todo.findById(req.params.id)
+  res.send(todos);
+});
 /* POST todo to listing. */
 router.post('/', async (req, res) => {
   const todo = await Todo.create({
@@ -15,8 +19,34 @@ router.post('/', async (req, res) => {
     done: false
   })
   res.send(todo);
-});
 
+  let visits=await redis.getAsync("added_todos")
+  if (visits===null) {visits=0}
+  visits++
+  // console.log("🚀 ~ a1:", visits)
+
+  redis.setAsync("added_todos",visits)
+  // console.log("🚀 ~ a:", visits)
+
+
+});
+router.put('/:id', async (req, res) => {
+  try {
+    const updatedTodo = await Todo.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    )
+
+    if (!updatedTodo) {
+      return res.status(404).json({ error: 'todo not found' })
+    }
+
+    res.json(updatedTodo)
+  } catch (error) {
+    res.status(400).json({ error: 'malformatted id' })
+  }
+})
 const singleRouter = express.Router();
 
 const findByIdMiddleware = async (req, res, next) => {

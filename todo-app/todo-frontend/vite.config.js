@@ -4,4 +4,10 @@ import react from '@vitejs/plugin-react'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  test: {
+    environment: 'happy-dom',
+    setupFiles: ['./src/tests/setup.js'],
+    include: ['src/**/*.{test,spec}.{js,jsx}']
+  },
+  server: {allowedHosts:['app','localhost']}
 })
